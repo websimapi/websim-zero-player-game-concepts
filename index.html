@@ -3,12 +3,6 @@ body {
     margin: 0;
     overflow: hidden;
     background: #1a1a1a;
-    color: #e0e0e0;
-    font-family: 'Courier New', monospace;
-}
-
-.container {
-    padding: 20px;
 }
 
 #terrainCanvas {
@@ -24,31 +18,9 @@ body {
     padding: 15px;
     border-radius: 8px;
 }
-
-.info-panel {
-    position: fixed;
-    left: 20px;
-    top: 20px;
-    background: rgba(0,0,0,0.8);
-    padding: 15px;
-    border-radius: 8px;
-    max-width: 300px;
-}
 </style></head><body>
 <div class="container">
     <canvas id="terrainCanvas"></canvas>
-    
-    <div class="info-panel">
-        <h2>3D Terrain Simulation</h2>
-        <p>Enhanced landscape featuring:</p>
-        <ul>
-            <li>Mountain ranges</li>
-            <li>Forests and vegetation</li>
-            <li>Water bodies</li>
-            <li>Dynamic lighting & shadows</li>
-        </ul>
-    </div>
-
     <div class="controls">
         <button onclick="regenerateTerrain()">Regenerate Terrain</button>
     </div>
@@ -72,10 +44,9 @@ function init() {
     renderer.setSize(WIDTH, HEIGHT);
     renderer.shadowMap.enabled = true;
 
-    camera.position.set(-50, 50, 50);
+    camera.position.set(0, 100, 150);
     camera.lookAt(0, 0, 0);
 
-    // Enhanced lighting system
     const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
     scene.add(ambientLight);
 
@@ -110,16 +81,14 @@ function createTerrain() {
         const x = positions[i] * 0.1;
         const z = positions[i + 2] * 0.1;
         
-        // Enhanced height generation
         let height = 0;
-        height += improvedNoise(x * 0.5, z * 0.5) * 30;
-        height += improvedNoise(x * 1, z * 1) * 15;
-        height += improvedNoise(x * 2, z * 2) * 7.5;
-        height += improvedNoise(x * 4, z * 4) * 3.75;
+        height += (Math.sin(x * 0.5) + Math.sin(z * 0.5)) * 15; // Base mountains
+        height += improvedNoise(x * 0.5, z * 0.5) * 40; // Large features
+        height += improvedNoise(x * 1, z * 1) * 20; // Medium features
+        height += improvedNoise(x * 2, z * 2) * 10; // Small features
         
         positions[i + 1] = height;
 
-        // Color based on height
         const color = new THREE.Color();
         if (height < 0) {
             color.setRGB(0.2, 0.3, 0.7); // Deep water
@@ -159,12 +128,12 @@ function createWater() {
     
     water = new THREE.Mesh(waterGeometry, waterMaterial);
     water.rotation.x = -Math.PI / 2;
-    water.position.y = -5;
+    water.position.y = -2;
     scene.add(water);
 }
 
 function createTrees() {
-    const treeCount = 1000;
+    const treeCount = 2000;
     const treeGeometry = new THREE.ConeGeometry(1, 4, 8);
     const treeMaterial = new THREE.MeshPhongMaterial({ color: 0x0b5c0b });
     const trunkGeometry = new THREE.CylinderGeometry(0.2, 0.2, 2, 8);
@@ -175,7 +144,7 @@ function createTrees() {
         const z = Math.random() * 180 - 90;
         const y = getHeightAt(x, z);
 
-        if (y > 5 && y < 20) { // Only place trees at certain heights
+        if (y > 2 && y < 20) { // Adjusted height range for tree placement
             const tree = new THREE.Group();
             
             const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
@@ -188,8 +157,8 @@ function createTrees() {
             tree.add(trunk);
             tree.add(leaves);
             
-            tree.position.set(x, y, z);
-            tree.scale.set(0.5 + Math.random() * 0.5, 0.5 + Math.random() * 0.5, 0.5 + Math.random() * 0.5);
+            tree.position.set(x, y - 1, z); // Adjusted y position
+            tree.scale.set(0.3 + Math.random() * 0.4, 0.3 + Math.random() * 0.4, 0.3 + Math.random() * 0.4);
             scene.add(tree);
         }
     }
@@ -198,9 +167,10 @@ function createTrees() {
 function getHeightAt(x, z) {
     const scale = 0.1;
     let height = 0;
-    height += improvedNoise(x * scale, z * scale) * 30;
-    height += improvedNoise(x * scale * 2, z * scale * 2) * 15;
-    height += improvedNoise(x * scale * 4, z * scale * 4) * 7.5;
+    height += (Math.sin(x * scale * 0.5) + Math.sin(z * scale * 0.5)) * 15;
+    height += improvedNoise(x * scale * 0.5, z * scale * 0.5) * 40;
+    height += improvedNoise(x * scale, z * scale) * 20;
+    height += improvedNoise(x * scale * 2, z * scale * 2) * 10;
     return height;
 }
 
@@ -219,15 +189,6 @@ function regenerateTerrain() {
 
 function animate() {
     requestAnimationFrame(animate);
-    
-    if (water) {
-        water.position.y = -5 + Math.sin(Date.now() * 0.001) * 0.5;
-    }
-    
-    camera.position.x = Math.sin(Date.now() * 0.0001) * 100;
-    camera.position.z = Math.cos(Date.now() * 0.0001) * 100;
-    camera.lookAt(0, 0, 0);
-    
     renderer.render(scene, camera);
 }
 
