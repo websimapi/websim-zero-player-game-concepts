@@ -47,6 +47,16 @@ function init() {
     camera.position.set(0, 100, 150);
     camera.lookAt(0, 0, 0);
 
+    const lights = setupLights();
+    createTerrain();
+    createWater();
+    animate();
+}
+
+function setupLights() {
+    // Clear existing lights
+    scene.children = scene.children.filter(child => !(child instanceof THREE.Light));
+    
     const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
     scene.add(ambientLight);
 
@@ -60,10 +70,7 @@ function init() {
     const hemisphereLight = new THREE.HemisphereLight(0xffffbb, 0x080820, 0.8);
     scene.add(hemisphereLight);
 
-    createTerrain();
-    createWater();
-    createTrees();
-    animate();
+    return [ambientLight, directionalLight, hemisphereLight];
 }
 
 function createTerrain() {
@@ -82,9 +89,9 @@ function createTerrain() {
         const z = positions[i + 2] * 0.1;
         
         let height = 0;
-        height += (Math.sin(x * 0.5) + Math.sin(z * 0.5)) * 15; // Base mountains
-        height += improvedNoise(x * 0.5, z * 0.5) * 40; // Large features
-        height += improvedNoise(x * 1, z * 1) * 20; // Medium features
+        height += Math.sin(x * 0.3) * Math.cos(z * 0.3) * 30; // Base mountains
+        height += improvedNoise(x * 0.2, z * 0.2) * 50; // Large features
+        height += improvedNoise(x * 0.8, z * 0.8) * 25; // Medium features
         height += improvedNoise(x * 2, z * 2) * 10; // Small features
         
         positions[i + 1] = height;
@@ -132,48 +139,6 @@ function createWater() {
     scene.add(water);
 }
 
-function createTrees() {
-    const treeCount = 2000;
-    const treeGeometry = new THREE.ConeGeometry(1, 4, 8);
-    const treeMaterial = new THREE.MeshPhongMaterial({ color: 0x0b5c0b });
-    const trunkGeometry = new THREE.CylinderGeometry(0.2, 0.2, 2, 8);
-    const trunkMaterial = new THREE.MeshPhongMaterial({ color: 0x3b2204 });
-
-    for (let i = 0; i < treeCount; i++) {
-        const x = Math.random() * 180 - 90;
-        const z = Math.random() * 180 - 90;
-        const y = getHeightAt(x, z);
-
-        if (y > 2 && y < 20) { // Adjusted height range for tree placement
-            const tree = new THREE.Group();
-            
-            const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
-            trunk.castShadow = true;
-            
-            const leaves = new THREE.Mesh(treeGeometry, treeMaterial);
-            leaves.position.y = 2;
-            leaves.castShadow = true;
-            
-            tree.add(trunk);
-            tree.add(leaves);
-            
-            tree.position.set(x, y - 1, z); // Adjusted y position
-            tree.scale.set(0.3 + Math.random() * 0.4, 0.3 + Math.random() * 0.4, 0.3 + Math.random() * 0.4);
-            scene.add(tree);
-        }
-    }
-}
-
-function getHeightAt(x, z) {
-    const scale = 0.1;
-    let height = 0;
-    height += (Math.sin(x * scale * 0.5) + Math.sin(z * scale * 0.5)) * 15;
-    height += improvedNoise(x * scale * 0.5, z * scale * 0.5) * 40;
-    height += improvedNoise(x * scale, z * scale) * 20;
-    height += improvedNoise(x * scale * 2, z * scale * 2) * 10;
-    return height;
-}
-
 function improvedNoise(x, z) {
     return (Math.sin(x) * Math.cos(z) + 
             Math.sin(x * 2.5) * Math.cos(z * 2.5) * 0.5 +
@@ -181,10 +146,11 @@ function improvedNoise(x, z) {
 }
 
 function regenerateTerrain() {
-    scene.clear();
+    scene.remove(terrain);
+    scene.remove(water);
+    setupLights();
     createTerrain();
     createWater();
-    createTrees();
 }
 
 function animate() {
