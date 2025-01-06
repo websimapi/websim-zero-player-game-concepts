@@ -1,4 +1,4 @@
-<html><head><base href="." /><title>Terrain Generation</title><style>
+<html><head><base href="." /><title>Detailed Terrain Generation</title><style>
 body {
     margin: 0;
     overflow: hidden;
@@ -40,12 +40,12 @@ body {
     
     <div class="info-panel">
         <h2>3D Terrain Simulation</h2>
-        <p>Procedurally generated landscape with:</p>
+        <p>Enhanced landscape featuring:</p>
         <ul>
-            <li>Perlin noise-based elevation</li>
-            <li>Dynamic lighting</li>
-            <li>Biome variations</li>
-            <li>Erosion simulation</li>
+            <li>Mountain ranges</li>
+            <li>Forests and vegetation</li>
+            <li>Water bodies</li>
+            <li>Dynamic lighting & shadows</li>
         </ul>
     </div>
 
@@ -56,96 +56,181 @@ body {
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-let scene, camera, renderer, terrain;
+let scene, camera, renderer, terrain, water;
 const WIDTH = window.innerWidth;
 const HEIGHT = window.innerHeight;
 
 function init() {
     scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x87ceeb, 0.002);
+    
     camera = new THREE.PerspectiveCamera(75, WIDTH / HEIGHT, 0.1, 1000);
     renderer = new THREE.WebGLRenderer({ 
         canvas: document.getElementById('terrainCanvas'),
         antialias: true
     });
     renderer.setSize(WIDTH, HEIGHT);
+    renderer.shadowMap.enabled = true;
 
-    // Adjusted camera position for better viewing angle
-    camera.position.set(0, 30, 50);
+    camera.position.set(-50, 50, 50);
     camera.lookAt(0, 0, 0);
 
-    // Enhanced lighting
-    const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+    // Enhanced lighting system
+    const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
     scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-    directionalLight.position.set(50, 200, 100);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
+    directionalLight.position.set(100, 100, 50);
     directionalLight.castShadow = true;
+    directionalLight.shadow.mapSize.width = 2048;
+    directionalLight.shadow.mapSize.height = 2048;
     scene.add(directionalLight);
 
-    // Add a subtle hemisphere light for better ambient lighting
-    const hemisphereLight = new THREE.HemisphereLight(0xffffbb, 0x080820, 0.5);
+    const hemisphereLight = new THREE.HemisphereLight(0xffffbb, 0x080820, 0.8);
     scene.add(hemisphereLight);
 
     createTerrain();
+    createWater();
+    createTrees();
     animate();
 }
 
 function createTerrain() {
-    const geometry = new THREE.PlaneGeometry(100, 100, 128, 128);
+    const geometry = new THREE.PlaneGeometry(200, 200, 256, 256);
     const material = new THREE.MeshPhongMaterial({
-        color: 0x3c7521,
-        wireframe: false,
+        vertexColors: true,
         flatShading: true,
         shininess: 0
     });
 
-    // Generate heightmap with improved noise
-    const vertices = geometry.attributes.position.array;
-    for (let i = 0; i < vertices.length; i += 3) {
-        const x = vertices[i] * 0.5;
-        const z = vertices[i + 2] * 0.5;
-        vertices[i + 1] = generateHeight(x, z);
+    const positions = geometry.attributes.position.array;
+    const colors = new Float32Array(positions.length);
+    
+    for (let i = 0; i < positions.length; i += 3) {
+        const x = positions[i] * 0.1;
+        const z = positions[i + 2] * 0.1;
+        
+        // Enhanced height generation
+        let height = 0;
+        height += improvedNoise(x * 0.5, z * 0.5) * 30;
+        height += improvedNoise(x * 1, z * 1) * 15;
+        height += improvedNoise(x * 2, z * 2) * 7.5;
+        height += improvedNoise(x * 4, z * 4) * 3.75;
+        
+        positions[i + 1] = height;
+
+        // Color based on height
+        const color = new THREE.Color();
+        if (height < 0) {
+            color.setRGB(0.2, 0.3, 0.7); // Deep water
+        } else if (height < 5) {
+            color.setRGB(0.8, 0.7, 0.4); // Beach
+        } else if (height < 15) {
+            color.setRGB(0.2, 0.6, 0.2); // Grass
+        } else if (height < 25) {
+            color.setRGB(0.4, 0.4, 0.4); // Rock
+        } else {
+            color.setRGB(1, 1, 1); // Snow
+        }
+
+        colors[i] = color.r;
+        colors[i + 1] = color.g;
+        colors[i + 2] = color.b;
     }
 
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
     geometry.computeVertexNormals();
+    
     terrain = new THREE.Mesh(geometry, material);
     terrain.rotation.x = -Math.PI / 2;
+    terrain.receiveShadow = true;
+    terrain.castShadow = true;
     scene.add(terrain);
 }
 
-function generateHeight(x, z) {
-    const scale = 0.03;
+function createWater() {
+    const waterGeometry = new THREE.PlaneGeometry(200, 200, 1, 1);
+    const waterMaterial = new THREE.MeshPhongMaterial({
+        color: 0x0077be,
+        transparent: true,
+        opacity: 0.6,
+        shininess: 90
+    });
+    
+    water = new THREE.Mesh(waterGeometry, waterMaterial);
+    water.rotation.x = -Math.PI / 2;
+    water.position.y = -5;
+    scene.add(water);
+}
+
+function createTrees() {
+    const treeCount = 1000;
+    const treeGeometry = new THREE.ConeGeometry(1, 4, 8);
+    const treeMaterial = new THREE.MeshPhongMaterial({ color: 0x0b5c0b });
+    const trunkGeometry = new THREE.CylinderGeometry(0.2, 0.2, 2, 8);
+    const trunkMaterial = new THREE.MeshPhongMaterial({ color: 0x3b2204 });
+
+    for (let i = 0; i < treeCount; i++) {
+        const x = Math.random() * 180 - 90;
+        const z = Math.random() * 180 - 90;
+        const y = getHeightAt(x, z);
+
+        if (y > 5 && y < 20) { // Only place trees at certain heights
+            const tree = new THREE.Group();
+            
+            const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+            trunk.castShadow = true;
+            
+            const leaves = new THREE.Mesh(treeGeometry, treeMaterial);
+            leaves.position.y = 2;
+            leaves.castShadow = true;
+            
+            tree.add(trunk);
+            tree.add(leaves);
+            
+            tree.position.set(x, y, z);
+            tree.scale.set(0.5 + Math.random() * 0.5, 0.5 + Math.random() * 0.5, 0.5 + Math.random() * 0.5);
+            scene.add(tree);
+        }
+    }
+}
+
+function getHeightAt(x, z) {
+    const scale = 0.1;
     let height = 0;
-    
-    // Multiple octaves with different frequencies and amplitudes
-    height += Math.sin(x * scale) * Math.cos(z * scale) * 10;
-    height += Math.sin(x * scale * 2) * Math.cos(z * scale * 2) * 5;
-    height += Math.sin(x * scale * 4) * Math.cos(z * scale * 4) * 2.5;
-    height += Math.sin(x * scale * 8) * Math.cos(z * scale * 8) * 1.25;
-    
-    // Add some random variation
-    height += Math.random() * 0.5;
-    
+    height += improvedNoise(x * scale, z * scale) * 30;
+    height += improvedNoise(x * scale * 2, z * scale * 2) * 15;
+    height += improvedNoise(x * scale * 4, z * scale * 4) * 7.5;
     return height;
 }
 
+function improvedNoise(x, z) {
+    return (Math.sin(x) * Math.cos(z) + 
+            Math.sin(x * 2.5) * Math.cos(z * 2.5) * 0.5 +
+            Math.sin(x * 5) * Math.cos(z * 5) * 0.25) / 1.75;
+}
+
 function regenerateTerrain() {
-    scene.remove(terrain);
+    scene.clear();
     createTerrain();
+    createWater();
+    createTrees();
 }
 
 function animate() {
     requestAnimationFrame(animate);
     
-    // Add subtle rotation to see the terrain better
-    if (terrain) {
-        terrain.rotation.z += 0.0005;
+    if (water) {
+        water.position.y = -5 + Math.sin(Date.now() * 0.001) * 0.5;
     }
+    
+    camera.position.x = Math.sin(Date.now() * 0.0001) * 100;
+    camera.position.z = Math.cos(Date.now() * 0.0001) * 100;
+    camera.lookAt(0, 0, 0);
     
     renderer.render(scene, camera);
 }
 
-// Handle window resize
 window.addEventListener('resize', () => {
     const WIDTH = window.innerWidth;
     const HEIGHT = window.innerHeight;
@@ -154,7 +239,6 @@ window.addEventListener('resize', () => {
     camera.updateProjectionMatrix();
 });
 
-// Initialize everything
 window.addEventListener('DOMContentLoaded', init);
 </script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"4c6229722a6346bc8eb5cb0e5eae5d41","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body></html>
