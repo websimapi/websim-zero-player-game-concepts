@@ -61,23 +61,30 @@ const WIDTH = window.innerWidth;
 const HEIGHT = window.innerHeight;
 
 function init() {
-    // Scene setup
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(75, WIDTH / HEIGHT, 0.1, 1000);
-    renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('terrainCanvas') });
+    renderer = new THREE.WebGLRenderer({ 
+        canvas: document.getElementById('terrainCanvas'),
+        antialias: true
+    });
     renderer.setSize(WIDTH, HEIGHT);
 
-    // Camera position
-    camera.position.set(0, 50, 100);
+    // Adjusted camera position for better viewing angle
+    camera.position.set(0, 30, 50);
     camera.lookAt(0, 0, 0);
 
-    // Lighting
-    const ambientLight = new THREE.AmbientLight(0x404040);
+    // Enhanced lighting
+    const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
     scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    directionalLight.position.set(1, 1, 1);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight.position.set(50, 200, 100);
+    directionalLight.castShadow = true;
     scene.add(directionalLight);
+
+    // Add a subtle hemisphere light for better ambient lighting
+    const hemisphereLight = new THREE.HemisphereLight(0xffffbb, 0x080820, 0.5);
+    scene.add(hemisphereLight);
 
     createTerrain();
     animate();
@@ -89,31 +96,35 @@ function createTerrain() {
         color: 0x3c7521,
         wireframe: false,
         flatShading: true,
+        shininess: 0
     });
 
-    // Generate heightmap
+    // Generate heightmap with improved noise
     const vertices = geometry.attributes.position.array;
     for (let i = 0; i < vertices.length; i += 3) {
-        const x = vertices[i];
-        const z = vertices[i + 2];
+        const x = vertices[i] * 0.5;
+        const z = vertices[i + 2] * 0.5;
         vertices[i + 1] = generateHeight(x, z);
     }
 
     geometry.computeVertexNormals();
     terrain = new THREE.Mesh(geometry, material);
-    terrain.rotation.x = -Math.PI / 2; // Rotate to be horizontal
+    terrain.rotation.x = -Math.PI / 2;
     scene.add(terrain);
 }
 
 function generateHeight(x, z) {
-    // Improved Perlin-like noise function
-    const scale = 0.02;
+    const scale = 0.03;
     let height = 0;
     
-    // Multiple octaves for more natural looking terrain
-    height += Math.sin(x * scale) * Math.cos(z * scale) * 5;
-    height += Math.sin(x * scale * 2) * Math.cos(z * scale * 2) * 2.5;
-    height += Math.sin(x * scale * 4) * Math.cos(z * scale * 4) * 1.25;
+    // Multiple octaves with different frequencies and amplitudes
+    height += Math.sin(x * scale) * Math.cos(z * scale) * 10;
+    height += Math.sin(x * scale * 2) * Math.cos(z * scale * 2) * 5;
+    height += Math.sin(x * scale * 4) * Math.cos(z * scale * 4) * 2.5;
+    height += Math.sin(x * scale * 8) * Math.cos(z * scale * 8) * 1.25;
+    
+    // Add some random variation
+    height += Math.random() * 0.5;
     
     return height;
 }
@@ -125,6 +136,12 @@ function regenerateTerrain() {
 
 function animate() {
     requestAnimationFrame(animate);
+    
+    // Add subtle rotation to see the terrain better
+    if (terrain) {
+        terrain.rotation.z += 0.0005;
+    }
+    
     renderer.render(scene, camera);
 }
 
@@ -138,6 +155,6 @@ window.addEventListener('resize', () => {
 });
 
 // Initialize everything
-init();
+window.addEventListener('DOMContentLoaded', init);
 </script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"4c6229722a6346bc8eb5cb0e5eae5d41","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body></html>
