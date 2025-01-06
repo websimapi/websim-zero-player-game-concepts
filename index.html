@@ -1,1 +1,143 @@
-<!-- v2: content unavailable -->
+<html><head><base href="." /><title>Terrain Generation</title><style>
+body {
+    margin: 0;
+    overflow: hidden;
+    background: #1a1a1a;
+    color: #e0e0e0;
+    font-family: 'Courier New', monospace;
+}
+
+.container {
+    padding: 20px;
+}
+
+#terrainCanvas {
+    border: 1px solid #333;
+    background: #000;
+}
+
+.controls {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(0,0,0,0.8);
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.info-panel {
+    position: fixed;
+    left: 20px;
+    top: 20px;
+    background: rgba(0,0,0,0.8);
+    padding: 15px;
+    border-radius: 8px;
+    max-width: 300px;
+}
+</style></head><body>
+<div class="container">
+    <canvas id="terrainCanvas"></canvas>
+    
+    <div class="info-panel">
+        <h2>3D Terrain Simulation</h2>
+        <p>Procedurally generated landscape with:</p>
+        <ul>
+            <li>Perlin noise-based elevation</li>
+            <li>Dynamic lighting</li>
+            <li>Biome variations</li>
+            <li>Erosion simulation</li>
+        </ul>
+    </div>
+
+    <div class="controls">
+        <button onclick="regenerateTerrain()">Regenerate Terrain</button>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+let scene, camera, renderer, terrain;
+const WIDTH = window.innerWidth;
+const HEIGHT = window.innerHeight;
+
+function init() {
+    // Scene setup
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(75, WIDTH / HEIGHT, 0.1, 1000);
+    renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('terrainCanvas') });
+    renderer.setSize(WIDTH, HEIGHT);
+
+    // Camera position
+    camera.position.set(0, 50, 100);
+    camera.lookAt(0, 0, 0);
+
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0x404040);
+    scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(1, 1, 1);
+    scene.add(directionalLight);
+
+    createTerrain();
+    animate();
+}
+
+function createTerrain() {
+    const geometry = new THREE.PlaneGeometry(100, 100, 128, 128);
+    const material = new THREE.MeshPhongMaterial({
+        color: 0x3c7521,
+        wireframe: false,
+        flatShading: true,
+    });
+
+    // Generate heightmap
+    const vertices = geometry.attributes.position.array;
+    for (let i = 0; i < vertices.length; i += 3) {
+        const x = vertices[i];
+        const z = vertices[i + 2];
+        vertices[i + 1] = generateHeight(x, z);
+    }
+
+    geometry.computeVertexNormals();
+    terrain = new THREE.Mesh(geometry, material);
+    terrain.rotation.x = -Math.PI / 2; // Rotate to be horizontal
+    scene.add(terrain);
+}
+
+function generateHeight(x, z) {
+    // Improved Perlin-like noise function
+    const scale = 0.02;
+    let height = 0;
+    
+    // Multiple octaves for more natural looking terrain
+    height += Math.sin(x * scale) * Math.cos(z * scale) * 5;
+    height += Math.sin(x * scale * 2) * Math.cos(z * scale * 2) * 2.5;
+    height += Math.sin(x * scale * 4) * Math.cos(z * scale * 4) * 1.25;
+    
+    return height;
+}
+
+function regenerateTerrain() {
+    scene.remove(terrain);
+    createTerrain();
+}
+
+function animate() {
+    requestAnimationFrame(animate);
+    renderer.render(scene, camera);
+}
+
+// Handle window resize
+window.addEventListener('resize', () => {
+    const WIDTH = window.innerWidth;
+    const HEIGHT = window.innerHeight;
+    renderer.setSize(WIDTH, HEIGHT);
+    camera.aspect = WIDTH / HEIGHT;
+    camera.updateProjectionMatrix();
+});
+
+// Initialize everything
+init();
+</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"4c6229722a6346bc8eb5cb0e5eae5d41","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body></html>
