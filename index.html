@@ -1,0 +1,155 @@
+<html><head><base href="https://example.com">
+<style>
+  body {
+    font-family: 'Courier New', monospace;
+    background: #1a1a1a;
+    color: #33ff33;
+    padding: 2rem;
+    line-height: 1.6;
+  }
+
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: #0a0a0a;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(51, 255, 51, 0.2);
+  }
+
+  h1, h2 {
+    color: #66ff66;
+    border-bottom: 1px solid #33ff33;
+    padding-bottom: 0.5rem;
+  }
+
+  .concept {
+    margin: 2rem 0;
+    padding: 1rem;
+    border: 1px solid #33ff33;
+    border-radius: 5px;
+    transition: transform 0.3s;
+  }
+
+  .concept:hover {
+    transform: translateX(10px);
+    background: #111111;
+  }
+
+  .blink {
+    animation: blink 1s infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .tag {
+    display: inline-block;
+    background: #1f3d1f;
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    margin: 0.2rem;
+    font-size: 0.9em;
+  }
+</style></head>
+<body>
+<div class="container">
+  <h1>Zero Player Game Concepts <span class="blink">_</span></h1>
+
+  <div class="concept">
+    <h2>Concept 1: Digital Ecosystem Simulator</h2>
+    <div class="tags">
+      <span class="tag">Autonomous</span>
+      <span class="tag">Evolution</span>
+      <span class="tag">Emergence</span>
+    </div>
+    <ul>
+      <li>Virtual organisms with DNA-like code structures</li>
+      <li>Autonomous evolution and adaptation</li>
+      <li>Resource competition systems</li>
+      <li>Weather and environmental factors</li>
+      <li>Mutation algorithms</li>
+      <li>Population dynamics</li>
+      <li>Visualization of species development</li>
+      <li>Historical data tracking</li>
+    </ul>
+  </div>
+
+  <div class="concept">
+    <h2>Concept 2: Cellular Automata City</h2>
+    <div class="tags">
+      <span class="tag">Self-organizing</span>
+      <span class="tag">Patterns</span>
+      <span class="tag">Growth</span>
+    </div>
+    <ul>
+      <li>Grid-based city development</li>
+      <li>Resource distribution algorithms</li>
+      <li>Traffic flow patterns</li>
+      <li>Building growth rules</li>
+      <li>Economic simulation</li>
+      <li>Population density mechanics</li>
+      <li>Pollution and environmental impact</li>
+      <li>Infrastructure development logic</li>
+    </ul>
+  </div>
+
+  <div class="concept">
+    <h2>Core Technical Requirements</h2>
+    <ul>
+      <li>Random seed generation for reproducibility</li>
+      <li>State management system</li>
+      <li>Visualization engine</li>
+      <li>Rule processing engine</li>
+      <li>Data logging and analytics</li>
+      <li>Time control system (pause/speed up/slow down)</li>
+      <li>Export/import functionality</li>
+      <li>Performance optimization for long-running simulations</li>
+    </ul>
+  </div>
+
+  <div class="concept">
+    <h2>Observation Tools</h2>
+    <ul>
+      <li>Real-time statistics dashboard</li>
+      <li>Timeline visualization</li>
+      <li>Event logging system</li>
+      <li>Pattern recognition tools</li>
+      <li>Population graphs</li>
+      <li>Resource distribution maps</li>
+      <li>Historical event playback</li>
+      <li>Data export for external analysis</li>
+    </ul>
+  </div>
+
+  <div class="concept">
+    <h2>Interesting Variables to Track</h2>
+    <ul>
+      <li>Population diversity metrics</li>
+      <li>Resource consumption patterns</li>
+      <li>Emergence of unexpected behaviors</li>
+      <li>System stability indicators</li>
+      <li>Evolution rate measurements</li>
+      <li>Pattern formation analysis</li>
+      <li>Extinction events</li>
+      <li>Environmental impact scores</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+// Add subtle hover effects
+document.querySelectorAll('.concept').forEach(concept => {
+    concept.addEventListener('mouseenter', () => {
+        concept.style.borderColor = '#66ff66';
+    });
+    concept.addEventListener('mouseleave', () => {
+        concept.style.borderColor = '#33ff33';
+    });
+});
+</script>
+
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"4c6229722a6346bc8eb5cb0e5eae5d41","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body></html>
